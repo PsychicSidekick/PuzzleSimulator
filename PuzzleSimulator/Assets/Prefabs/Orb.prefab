@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8682430511866961866}
   - component: {fileID: 8682430511866961865}
+  - component: {fileID: 95236829260985286}
   m_Layer: 0
   m_Name: Orb
   m_TagString: Untagged
@@ -84,3 +85,24 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &95236829260985286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8682430511866961864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95cfa0ed5b8b63943aa7226aaf6b8a22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  spriteRenderer: {fileID: 8682430511866961865}
+  typeColors:
+  - {r: 1, g: 0.3959606, b: 0.15471691, a: 1}
+  - {r: 0.14528298, g: 0.68435144, b: 1, a: 1}
+  - {r: 0.25679746, g: 0.8773585, b: 0.25161976, a: 1}
+  - {r: 0.9899728, g: 1, b: 0.2584905, a: 1}
+  - {r: 0.745954, g: 0.3150943, b: 1, a: 1}
+  - {r: 1, g: 0.4943396, b: 0.7689936, a: 1}
