@@ -12,9 +12,13 @@ public class GameManager : MonoBehaviour
     public GameObject orbPrefab;
     public GameObject cellPrefab;
 
+    public bool startedSpinning = false;
     public GameObject orbOnCursor;
-    public Orb currentOrb;
-    public GameObject currentCell;
+
+    public static readonly Vector2Int rightDir = new Vector2Int(1, 0);
+    public static readonly Vector2Int leftDir = new Vector2Int(-1, 0);
+    public static readonly Vector2Int downDir = new Vector2Int(0, 1);
+    public static readonly Vector2Int upDir = new Vector2Int(0, -1);
 
     private void Awake()
     {
@@ -26,14 +30,42 @@ public class GameManager : MonoBehaviour
         InitializeGrid();
     }
 
+    public void Test()
+    {
+        ResetGrid();
+
+        List<List<Orb>> combos = new List<List<Orb>>();
+        for (int x = 0; x < gridSize.x; x++)
+        {
+            for (int y = 0; y < gridSize.y; y++)
+            {
+                Orb orb = grid[x][y].orb;
+                if (!orb.isChecked)
+                {
+                    List<Orb> combo = grid[x][y].orb.FindComboOrbs();
+                    if (combo.Count != 0)
+                    {
+                        combos.Add(combo);
+                    }
+                }
+            }
+        }
+
+        Debug.Log(combos.Count);
+        foreach (List<Orb> combo in combos)
+        {
+            string str = "";
+            Debug.Log(combo.Count);
+            foreach (Orb orb in combo)
+            {
+                str += orb.pos;
+            }
+            Debug.Log(str);
+        }
+    }
+
     private void Update()
     {
-        if (currentCell)
-        {
-            Debug.Log(currentCell.transform.position);
-        }
-        
-
         if (orbOnCursor != null)
         {
             orbOnCursor.transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition) + new Vector3(0, 0, 10);
@@ -59,11 +91,9 @@ public class GameManager : MonoBehaviour
 
             grid.Add(roll);
         }
-
-        ExpandEdgeCellCollider();
     }
 
-    public void ExpandEdgeCellCollider()
+    public void ExpandEdgeCellColliders()
     {
         for (int x = 0; x < gridSize.x; x++)
         {
@@ -85,6 +115,19 @@ public class GameManager : MonoBehaviour
             collider = grid[gridSize.x - 1][y].GetComponent<BoxCollider2D>();
             collider.offset += new Vector2(4.5f, 0);
             collider.size += new Vector2(9, 0);
+        }
+    }
+
+    public void ResetCellColliders()
+    {
+        for (int x = 0; x < gridSize.x; x++)
+        {
+            for (int y = 0; y < gridSize.y; y++)
+            {
+                BoxCollider2D collider = grid[x][y].GetComponent<BoxCollider2D>();
+                collider.offset = new Vector2(0, 0);
+                collider.size = new Vector2(1, 1);
+            }
         }
     }
 
@@ -112,24 +155,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void CheckForComboAt(int x, int y)
+    public void ResetGrid()
     {
-        int xPointer = x;
-
-        // check to the right
-        while(xPointer < gridSize.x)
+        for (int x = 0; x < gridSize.x; x++)
         {
-            xPointer++;
-
-        }
-
-        xPointer = x;
-
-        // check to the left
-        while(xPointer >= 0)
-        {
-            xPointer--;
-
+            for (int y = 0; y < gridSize.y; y++)
+            {
+                grid[x][y].orb.pos = new Vector2Int(x, y);
+                grid[x][y].orb.isChecked = false;
+            }
         }
     }
 }

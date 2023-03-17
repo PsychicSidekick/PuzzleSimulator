@@ -8,6 +8,8 @@ public class Cell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoin
     [HideInInspector]
     public Orb orb;
 
+    public static Orb selectedOrb;
+    public static Cell currentCellMouseIsOn;
     public GameObject orbOnCursorPrefab;
 
     public void SwapOrbs(Cell cell)
@@ -21,29 +23,42 @@ public class Cell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoin
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        GameManager.instance.currentCell = gameObject;
-        GameManager.instance.currentOrb = orb;
+        GameManager.instance.ExpandEdgeCellColliders();
+
+        GameManager.instance.ResetGrid();
+
+        currentCellMouseIsOn = this;
+        selectedOrb = orb;
 
         GameObject orbOnCursor = Instantiate(orbOnCursorPrefab, transform.position, Quaternion.identity);
         GameManager.instance.orbOnCursor = orbOnCursor;
-        orbOnCursor.GetComponent<SpriteRenderer>().color = orb.spriteRenderer.color;
+        GameManager.instance.orbOnCursor.GetComponent<SpriteRenderer>().color = orb.spriteRenderer.color;
 
         orb.ChangeAlpha(0.5f);
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        GameManager.instance.ResetCellColliders();
+
+        if (GameManager.instance.startedSpinning)
+        {
+            GameManager.instance.startedSpinning = false;
+            GameManager.instance.ResetGrid();
+        }
+
         Destroy(GameManager.instance.orbOnCursor);
 
-        GameManager.instance.currentOrb.ChangeAlpha(1f);
+        selectedOrb.ChangeAlpha(1f);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (GameManager.instance.orbOnCursor)
         {
-            SwapOrbs(GameManager.instance.currentCell.GetComponent<Cell>());
-            GameManager.instance.currentCell = gameObject;
+            GameManager.instance.startedSpinning = true;
+            SwapOrbs(currentCellMouseIsOn);
+            currentCellMouseIsOn = this;
         }
     }
 }
