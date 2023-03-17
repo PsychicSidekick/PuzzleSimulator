@@ -24,9 +24,9 @@ public class Orb : MonoBehaviour
 
     public static readonly Vector2Int rightDir = new Vector2Int(1, 0);
     public static readonly Vector2Int leftDir = new Vector2Int(-1, 0);
-    public static readonly Vector2Int downDir = new Vector2Int(0, 1);
-    public static readonly Vector2Int upDir = new Vector2Int(0, -1);
-
+    public static readonly Vector2Int upDir = new Vector2Int(0, 1);
+    public static readonly Vector2Int downDir = new Vector2Int(0, -1);
+    
     private void Start()
     {
         spriteRenderer.color = typeColors[(int)type];

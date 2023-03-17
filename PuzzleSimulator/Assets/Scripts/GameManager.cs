@@ -15,11 +15,6 @@ public class GameManager : MonoBehaviour
     public bool startedSpinning = false;
     public GameObject orbOnCursor;
 
-    public static readonly Vector2Int rightDir = new Vector2Int(1, 0);
-    public static readonly Vector2Int leftDir = new Vector2Int(-1, 0);
-    public static readonly Vector2Int downDir = new Vector2Int(0, 1);
-    public static readonly Vector2Int upDir = new Vector2Int(0, -1);
-
     private void Awake()
     {
         instance = this;
@@ -35,9 +30,9 @@ public class GameManager : MonoBehaviour
         ResetGrid();
 
         List<List<Orb>> combos = new List<List<Orb>>();
-        for (int x = 0; x < gridSize.x; x++)
+        for (int y = 0; y < gridSize.y; y++)
         {
-            for (int y = 0; y < gridSize.y; y++)
+            for (int x = 0; x < gridSize.x; x++)
             {
                 Orb orb = grid[x][y].orb;
                 if (!orb.isChecked)
@@ -74,7 +69,7 @@ public class GameManager : MonoBehaviour
 
     public void InitializeGrid()
     {
-        Vector3 firstOrbPos = new Vector3(0.5f - gridSize.x / 2f, gridSize.y / 2f - 0.5f, 0);
+        Vector3 firstOrbPos = new Vector3(0.5f - gridSize.x / 2f, 0.5f - gridSize.y / 2f, 0);
 
         for (int x = 0; x < gridSize.x; x++)
         {
@@ -82,7 +77,7 @@ public class GameManager : MonoBehaviour
 
             for (int y = 0; y < gridSize.y; y++)
             {
-                Vector3 posOffSet = new Vector3(x, -y, 0);
+                Vector3 posOffSet = new Vector3(x, y, 0);
                 Orb orb = InstantiateRandomOrb(firstOrbPos + posOffSet, new Vector2Int(x, y));
                 Cell cell = Instantiate(cellPrefab, firstOrbPos + posOffSet, Quaternion.identity).GetComponent<Cell>();
                 cell.orb = orb;
@@ -98,11 +93,11 @@ public class GameManager : MonoBehaviour
         for (int x = 0; x < gridSize.x; x++)
         {
             BoxCollider2D collider = grid[x][0].GetComponent<BoxCollider2D>();
-            collider.offset += new Vector2(0, 4.5f);
+            collider.offset += new Vector2(0, -4.5f);
             collider.size += new Vector2(0, 9);
 
             collider = grid[x][gridSize.y - 1].GetComponent<BoxCollider2D>();
-            collider.offset += new Vector2(0, -4.5f);
+            collider.offset += new Vector2(0, 4.5f);
             collider.size += new Vector2(0, 9);
         }
 
