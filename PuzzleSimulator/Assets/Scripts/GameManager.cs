@@ -156,8 +156,12 @@ public class GameManager : MonoBehaviour
         {
             for (int y = 0; y < gridSize.y; y++)
             {
-                grid[x][y].orb.pos = new Vector2Int(x, y);
-                grid[x][y].orb.isChecked = false;
+                Orb orb = grid[x][y].orb;
+                orb.pos = new Vector2Int(x, y);
+                orb.isChecked = false;
+                orb.dropping = false;
+                orb.dropTargetPos = grid[x][y].orb.transform.position;
+                orb.dropSpeed = 0;
             }
         }
     }
@@ -181,10 +185,25 @@ public class GameManager : MonoBehaviour
         foreach (List<Orb> combo in combos)
         {
             PopCombo(combo);
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.3f);
         }
 
+        DropExistingOrbs();
         Debug.Log(combos.Count);
         yield return null;
+    }
+
+    public void DropExistingOrbs()
+    {
+        for (int x = 0; x < gridSize.x; x++)
+        {
+            for (int y = 0; y < gridSize.y; y++)
+            {
+                if (grid[x][y].orb)
+                {
+                    grid[x][y].orb.Drop();
+                }
+            }
+        }
     }
 }

@@ -39,6 +39,10 @@ public class Orb : MonoBehaviour
     public static readonly Vector2Int leftDir = new Vector2Int(-1, 0);
     public static readonly Vector2Int upDir = new Vector2Int(0, 1);
     public static readonly Vector2Int downDir = new Vector2Int(0, -1);
+
+    public bool dropping = false;
+    public Vector2 dropTargetPos;
+    public float dropSpeed = 0;
     
     private void Start()
     {
@@ -50,6 +54,34 @@ public class Orb : MonoBehaviour
         Color c = spriteRenderer.color;
         c.a = alpha;
         spriteRenderer.color = c;
+    }
+
+    public void Update()
+    {
+        if (dropping)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, dropTargetPos, dropSpeed * Time.deltaTime);
+        }
+    }
+
+    public void Drop()
+    {
+        List<List<Cell>> grid = GameManager.instance.grid;
+        int targetY = pos.y;
+
+        while (targetY > 0 && !grid[pos.x][targetY - 1].orb)
+        {
+            targetY--;
+        }
+
+        if (targetY != pos.y)
+        {
+            grid[pos.x][pos.y].orb = null;
+            grid[pos.x][targetY].orb = this;
+            dropTargetPos = grid[pos.x][targetY].transform.position;
+            dropSpeed = (pos.y - targetY) * 3;
+            dropping = true;
+        }
     }
 
     public void UpdateColour()
