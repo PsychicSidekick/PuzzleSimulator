@@ -25,40 +25,6 @@ public class GameManager : MonoBehaviour
         InitializeGrid();
     }
 
-    public void Test()
-    {
-        ResetGrid();
-
-        List<List<Orb>> combos = new List<List<Orb>>();
-        for (int y = 0; y < gridSize.y; y++)
-        {
-            for (int x = 0; x < gridSize.x; x++)
-            {
-                Orb orb = grid[x][y].orb;
-                if (!orb.isChecked)
-                {
-                    List<Orb> combo = grid[x][y].orb.FindComboOrbs();
-                    if (combo.Count != 0)
-                    {
-                        combos.Add(combo);
-                    }
-                }
-            }
-        }
-
-        Debug.Log(combos.Count);
-        foreach (List<Orb> combo in combos)
-        {
-            string str = "";
-            Debug.Log(combo.Count);
-            foreach (Orb orb in combo)
-            {
-                str += orb.pos;
-            }
-            Debug.Log(str);
-        }
-    }
-
     private void Update()
     {
         if (orbOnCursor != null)
@@ -86,6 +52,31 @@ public class GameManager : MonoBehaviour
 
             grid.Add(roll);
         }
+
+        RandomizeGridNoCombo();
+    }
+
+    public List<List<Orb>> FindAllCombosInGrid()
+    {
+        List<List<Orb>> combos = new List<List<Orb>>();
+        for (int y = 0; y < gridSize.y; y++)
+        {
+            for (int x = 0; x < gridSize.x; x++)
+            {
+                Orb orb = grid[x][y].orb;
+                if (!orb.isChecked)
+                {
+                    List<Orb> combo = grid[x][y].orb.FindComboOrbs();
+                    if (combo.Count != 0)
+                    {
+                        combos.Add(combo);
+                    }
+                }
+            }
+        }
+
+        ResetGrid();
+        return combos;
     }
 
     public void ExpandEdgeCellColliders()
@@ -150,6 +141,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void RandomizeGridNoCombo()
+    {
+        do
+        {
+            RandomizeGrid();
+        }
+        while (FindAllCombosInGrid().Count > 0);
+    }
+
     public void ResetGrid()
     {
         for (int x = 0; x < gridSize.x; x++)
@@ -160,5 +160,31 @@ public class GameManager : MonoBehaviour
                 grid[x][y].orb.isChecked = false;
             }
         }
+    }
+
+    public void PopCombo(List<Orb> combo)
+    {
+        foreach (Orb orb in combo)
+        {
+            Destroy(orb.gameObject);
+        }
+    }
+
+    public void PopCombos()
+    {
+        List<List<Orb>> combos = FindAllCombosInGrid();
+        StartCoroutine(PopCombosRoutine(combos));
+    }
+
+    private IEnumerator PopCombosRoutine(List<List<Orb>> combos)
+    {
+        foreach (List<Orb> combo in combos)
+        {
+            PopCombo(combo);
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        Debug.Log(combos.Count);
+        yield return null;
     }
 }

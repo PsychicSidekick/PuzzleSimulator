@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -15,7 +16,19 @@ public enum OrbType
 
 public class Orb : MonoBehaviour
 {
-    public OrbType type;
+    public OrbType type
+    {
+        get { return _type; }
+        set
+        {
+            _type = value;
+            UpdateColour();
+        }
+    }
+
+    [SerializeField]
+    private OrbType _type;
+
     public Vector2Int pos;
     public bool isChecked = false;
 
@@ -29,7 +42,7 @@ public class Orb : MonoBehaviour
     
     private void Start()
     {
-        spriteRenderer.color = typeColors[(int)type];
+        UpdateColour();
     }
 
     public void ChangeAlpha(float alpha)
@@ -39,12 +52,17 @@ public class Orb : MonoBehaviour
         spriteRenderer.color = c;
     }
 
+    public void UpdateColour()
+    {
+        spriteRenderer.color = typeColors[(int)type];
+    }
+
     // Find orbs that makes a Combo with this orb
     public List<Orb> FindComboOrbs()
     {
         List<Orb> comboOrbs = new List<Orb>();
 
-        // If this orb is already checked, return
+        // If this orb is already checked, exit method
         if (isChecked)
         {
             return comboOrbs;
@@ -54,23 +72,23 @@ public class Orb : MonoBehaviour
             isChecked = true;
         }
 
-        // Checks for orbs of the same type on the x axis
         List<Orb> xAxisSameTypedOrbs = new List<Orb>();
+        // Checks for orbs of the same type on the x axis
         xAxisSameTypedOrbs.AddRange(FindSameTypedOrbsInDirection(rightDir));
         xAxisSameTypedOrbs.AddRange(FindSameTypedOrbsInDirection(leftDir));
 
-        // If Combo detected on the x axis, add to return list
+        // If Combo detected on the x axis, add to comboOrbs
         if (xAxisSameTypedOrbs.Count >= 2)
         {
             comboOrbs.AddRange(xAxisSameTypedOrbs);
         }
 
-        // Checks for orbs of the same type on the y axis
         List<Orb> yAxisSameTypedOrbs = new List<Orb>();
+        // Checks for orbs of the same type on the y axis
         yAxisSameTypedOrbs.AddRange(FindSameTypedOrbsInDirection(upDir));
         yAxisSameTypedOrbs.AddRange(FindSameTypedOrbsInDirection(downDir));
 
-        // If Combo detected on the y axis, add to return list
+        // If Combo detected on the y axis, add to comboOrbs
         if (yAxisSameTypedOrbs.Count >= 2)
         {
             comboOrbs.AddRange(yAxisSameTypedOrbs);
@@ -79,30 +97,22 @@ public class Orb : MonoBehaviour
         // If Combo detected at this orb
         if (comboOrbs.Count >= 2)
         {
-            // Add this orb to Combo
-            if (!comboOrbs.Contains(this))
+            // Add this orb to comboOrbs
+            comboOrbs.Add(this);
+
+            // Join the orbs found on both axes
+            xAxisSameTypedOrbs.AddRange(yAxisSameTypedOrbs);
+
+            // For each orb of the same type found on both axes, check for Combo
+            foreach (Orb orb in xAxisSameTypedOrbs)
             {
-                comboOrbs.Add(this);
-            }
-
-            List<Orb> sameTypedOrbs = new List<Orb>();
-
-            sameTypedOrbs.AddRange(xAxisSameTypedOrbs);
-            sameTypedOrbs.AddRange(yAxisSameTypedOrbs);
-
-            // For each sameTypedOrbs, check for Combo at that orb
-            foreach (Orb orb in sameTypedOrbs)
-            {
-                foreach (Orb o in orb.FindComboOrbs())
-                {
-                    // Does not add already existing Combo orbs
-                    if (!comboOrbs.Contains(o))
-                    {
-                        comboOrbs.Add(o);
-                    }
-                }
+                // Add the orbs to comboOrbs
+                comboOrbs.AddRange(orb.FindComboOrbs());
             }
         }
+
+        // Remove duplicated orbs
+        comboOrbs = comboOrbs.Distinct().ToList();
 
         return comboOrbs;
     }
@@ -113,13 +123,13 @@ public class Orb : MonoBehaviour
         List<Orb> sameTypedOrbs = new List<Orb>();
 
         // Set position pointer to the next orb
-        int x = pos.x + dir.x;
-        int y = pos.y + dir.y;
+        int xPointer = pos.x + dir.x;
+        int yPointer = pos.y + dir.y;
 
         // Continues check while pointers are within bounds
-        while (x < GameManager.instance.gridSize.x && x >= 0 && y < GameManager.instance.gridSize.y && y >= 0)
+        while (xPointer < GameManager.instance.gridSize.x && xPointer >= 0 && yPointer < GameManager.instance.gridSize.y && yPointer >= 0)
         {
-            Orb nextOrb = GameManager.instance.grid[x][y].orb;
+            Orb nextOrb = GameManager.instance.grid[xPointer][yPointer].orb;
             // Adds the checked orb to return list if it has the same type
             if (nextOrb.type == type)
             {
@@ -132,8 +142,8 @@ public class Orb : MonoBehaviour
             }
 
             // Move pointers to next orb
-            x += dir.x;
-            y += dir.y;
+            xPointer += dir.x;
+            yPointer += dir.y;
         }
 
         return sameTypedOrbs;

@@ -45,6 +45,7 @@ public class Cell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoin
         {
             GameManager.instance.startedSpinning = false;
             GameManager.instance.ResetGrid();
+            GameManager.instance.PopCombos();
         }
 
         Destroy(GameManager.instance.orbOnCursor);
