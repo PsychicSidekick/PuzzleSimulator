@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System;
 using UnityEngine.EventSystems;
 
 public enum OrbType
@@ -55,7 +56,6 @@ public class Orb : MonoBehaviour
         c.a = alpha;
         spriteRenderer.color = c;
     }
-
     public void Update()
     {
         if (dropping)
@@ -64,11 +64,13 @@ public class Orb : MonoBehaviour
         }
     }
 
+    // Drops orb to the bottom, stacking on orbs below
     public void Drop()
     {
         List<List<Cell>> grid = GameManager.instance.grid;
         int targetY = pos.y;
 
+        // Finds the lowest free cell on the grid
         while (targetY > 0 && !grid[pos.x][targetY - 1].orb)
         {
             targetY--;
@@ -76,10 +78,17 @@ public class Orb : MonoBehaviour
 
         if (targetY != pos.y)
         {
-            grid[pos.x][pos.y].orb = null;
+            // If this orb is not a new orb, remove this orb from the previous cell
+            if (pos.y < GameManager.instance.gridSize.y)
+            {
+                grid[pos.x][pos.y].orb = null;
+            }
+            // Puts this orb into the new free cell
             grid[pos.x][targetY].orb = this;
             dropTargetPos = grid[pos.x][targetY].transform.position;
-            dropSpeed = (pos.y - targetY) * 3;
+            // Calculate speed of drop from the distance of dropping
+            dropSpeed = (transform.position.y - dropTargetPos.y) * 3;
+            // Starts dropping
             dropping = true;
         }
     }
@@ -87,6 +96,11 @@ public class Orb : MonoBehaviour
     public void UpdateColour()
     {
         spriteRenderer.color = typeColors[(int)type];
+    }
+
+    public void RandomizeType()
+    {
+        type = (OrbType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(OrbType)).Length);
     }
 
     // Find orbs that makes a Combo with this orb

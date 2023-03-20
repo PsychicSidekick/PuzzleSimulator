@@ -15,6 +15,8 @@ public class GameManager : MonoBehaviour
     public bool startedSpinning = false;
     public GameObject orbOnCursor;
 
+    public GameObject wall;
+
     private void Awake()
     {
         instance = this;
@@ -121,13 +123,8 @@ public class GameManager : MonoBehaviour
     {
         Orb orb = Instantiate(orbPrefab, worldPos, Quaternion.identity).GetComponent<Orb>();
         orb.pos = gridPos;
-        RandomizeOrbType(orb);
+        orb.RandomizeType();
         return orb;
-    }
-
-    public void RandomizeOrbType(Orb orb)
-    {
-        orb.type = (OrbType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(OrbType)).Length);
     }
 
     public void RandomizeGrid()
@@ -136,7 +133,7 @@ public class GameManager : MonoBehaviour
         {
             for (int y = 0; y < grid[0].Count; y++)
             {
-                RandomizeOrbType(grid[x][y].orb);
+                grid[x][y].orb.RandomizeType();
             }
         }
     }
@@ -166,6 +163,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Destroy all orbs in a combo
     public void PopCombo(List<Orb> combo)
     {
         foreach (Orb orb in combo)
@@ -174,26 +172,49 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Starts PopCombosRoutine
     public void PopCombos()
     {
-        List<List<Orb>> combos = FindAllCombosInGrid();
-        StartCoroutine(PopCombosRoutine(combos));
+        StartCoroutine(PopCombosRoutine());
     }
 
-    private IEnumerator PopCombosRoutine(List<List<Orb>> combos)
+    // Repeats dropping orbs and popping combos until no more combos are found
+    private IEnumerator PopCombosRoutine()
     {
-        foreach (List<Orb> combo in combos)
-        {
-            PopCombo(combo);
-            yield return new WaitForSeconds(0.3f);
-        }
+        // Prevents orbs from being clicked on
+        wall.SetActive(true);
 
-        DropExistingOrbs();
-        Debug.Log(combos.Count);
+        // While a combo exists on the grid
+        do
+        {
+            List<List<Orb>> combos = FindAllCombosInGrid();
+
+            // Destroy all orbs that are a part of a combo
+            foreach (List<Orb> combo in combos)
+            {
+                PopCombo(combo);
+                // Separates combo pops
+                yield return new WaitForSeconds(0.3f);
+            }
+
+            DropRemainingOrbs();
+            DropRandomNewOrbs();
+
+            // Waits until all orbs are dropped in place
+            yield return new WaitForSeconds(0.4f);
+
+            // Resets grid for next combo find
+            ResetGrid();
+        }
+        while (FindAllCombosInGrid().Count > 0);
+
+        // Allows orbs to be clicked on and start the next spin
+        wall.SetActive(false);
         yield return null;
     }
 
-    public void DropExistingOrbs()
+    // Drops the remaining orbs to the bottom
+    public void DropRemainingOrbs()
     {
         for (int x = 0; x < gridSize.x; x++)
         {
@@ -202,6 +223,32 @@ public class GameManager : MonoBehaviour
                 if (grid[x][y].orb)
                 {
                     grid[x][y].orb.Drop();
+                }
+            }
+        }
+    }
+
+    // Creates and drops a new random orb on each column for each free cell on the grid
+    public void DropRandomNewOrbs()
+    {
+        for (int x = 0; x < gridSize.x; x++)
+        {
+            float yPosOffSet = 1;
+            for (int y = 0; y < gridSize.y; y++)
+            {
+                if(!grid[x][y].orb)
+                {
+                    float xPos = grid[x][y].transform.position.x;
+                    // Finds the y position of the new orb by adding the offset to the current column's highest cell's position
+                    float yPos = grid[x][gridSize.y-1].transform.position.y + yPosOffSet;
+                    // Increments offset so that the next new orb's position will be higher
+                    yPosOffSet++;
+
+                    Orb orb = Instantiate(orbPrefab, new Vector2(xPos, yPos), Quaternion.identity).GetComponent<Orb>();
+                    orb.pos = new Vector2Int(x, gridSize.y);
+                    orb.RandomizeType();
+
+                    orb.Drop();
                 }
             }
         }
