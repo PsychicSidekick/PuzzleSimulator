@@ -49,6 +49,7 @@ public class GameManager : MonoBehaviour
                 Orb orb = InstantiateRandomOrb(firstOrbPos + posOffSet, new Vector2Int(x, y));
                 Cell cell = Instantiate(cellPrefab, firstOrbPos + posOffSet, Quaternion.identity).GetComponent<Cell>();
                 cell.orb = orb;
+                cell.pos = new Vector2Int(x, y);
                 roll.Add(cell);
             }
 
