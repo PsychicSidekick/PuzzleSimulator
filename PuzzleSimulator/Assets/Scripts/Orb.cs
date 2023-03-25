@@ -44,7 +44,12 @@ public class Orb : MonoBehaviour
     public bool dropping = false;
     public Vector2 dropTargetPos;
     public float dropSpeed = 0;
-    
+
+    public bool swapping = false;
+    public Vector3 rotateTargetPos;
+    public Vector3 swapTargetPos;
+    public float swapSpeed = 2000;
+
     private void Start()
     {
         UpdateColour();
@@ -62,6 +67,19 @@ public class Orb : MonoBehaviour
         {
             transform.position = Vector2.MoveTowards(transform.position, dropTargetPos, dropSpeed * Time.deltaTime);
         }
+
+        if (swapping)
+        {
+            // Rotates the orb around the mid-point of two cells until it reaches the swapTargetPos
+            transform.RotateAround(rotateTargetPos, Vector3.forward, swapSpeed * Time.deltaTime);
+            if (Vector3.Distance(transform.position, swapTargetPos) < 0.1)
+            {
+                transform.position = swapTargetPos;
+                swapping = false;
+            }
+        }
+
+        transform.rotation = Quaternion.identity;
     }
 
     // Drops orb to the bottom, stacking on orbs below
@@ -193,5 +211,15 @@ public class Orb : MonoBehaviour
         }
 
         return sameTypedOrbs;
+    }
+
+    // Sets the variables used for swapping
+    public void StartSwap(Vector3 startPos, Vector3 targetPos, float speed)
+    {
+        transform.position = startPos;
+        swapTargetPos = targetPos;
+        rotateTargetPos = (startPos + targetPos) / 2;
+        swapSpeed = speed;
+        swapping = true;
     }
 }

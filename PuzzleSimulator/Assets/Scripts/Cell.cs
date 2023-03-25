@@ -45,29 +45,38 @@ public class Cell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoin
         }
     }
 
-    private void SwapOrbWith(Cell cell)
+    // Swap orbs with another cell
+    private void SwapOrbWith(Cell startCell)
     {
-        StartCoroutine(MoveOrb(cell));
-        Cell endCell = this;
-        Orb temp = cell.orb;
-        cell.orb = endCell.orb;
-        endCell.orb = temp;
-    }
+        float swapSpeed = 2500;
 
-    private IEnumerator MoveOrb(Cell cell)
-    {
-        Orb oldOrb = orb;
-        Orb newOrb = cell.orb;
-        oldOrb.transform.position = (transform.position + cell.transform.position) / 2;
-        newOrb.transform.position = (transform.position + cell.transform.position) / 2;
-        yield return new WaitForSeconds(0.075f);
-        oldOrb.transform.position = cell.transform.position;
-        newOrb.transform.position = transform.position;
-        yield return null;
+        // Determines the direction of rotation 
+        Vector2 posDiff = startCell.transform.position - transform.position;
+        if (posDiff.x != 0)
+        {
+            swapSpeed *= posDiff.x;
+        }
+        else if (posDiff.y != 0)
+        {
+            swapSpeed *= posDiff.y;
+        }
+
+        // Swaps the orb gameObjects
+        startCell.orb.StartSwap(startCell.transform.position, transform.position, swapSpeed);
+        orb.StartSwap(transform.position, startCell.transform.position, swapSpeed);
+
+        // Swaps orb objects
+        Orb temp = startCell.orb;
+        startCell.orb = orb;
+        orb = temp;
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (eventData.pointerId != -1)
+        {
+            return;
+        }
         GameManager.instance.ExpandEdgeCellColliders();
 
         GameManager.instance.ResetGrid();
@@ -84,6 +93,10 @@ public class Cell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoin
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        if (eventData.pointerId != -1)
+        {
+            return;
+        }
         GameManager.instance.ResetCellColliders();
 
         if (GameManager.instance.startedSpinning)
@@ -102,6 +115,7 @@ public class Cell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoin
     {
         if (GameManager.instance.orbOnCursor)
         {
+            orb.transform.position = transform.position;
             GameManager.instance.startedSpinning = true;
             MoveOrbFrom(currentCellMouseIsOn);
             currentCellMouseIsOn = this;
