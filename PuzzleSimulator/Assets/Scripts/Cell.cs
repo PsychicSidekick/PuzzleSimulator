@@ -11,7 +11,6 @@ public class Cell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoin
 
     public static Orb selectedOrb;
     public static Cell currentCellMouseIsOn;
-    public GameObject orbOnCursorPrefab;
 
     // Moves an orb from startCell to this Cell one Cell at a time
     public void MoveOrbFrom(Cell startCell)
@@ -77,18 +76,11 @@ public class Cell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoin
         {
             return;
         }
-        GameManager.instance.ExpandEdgeCellColliders();
-
-        GameManager.instance.ResetGrid();
 
         currentCellMouseIsOn = this;
         selectedOrb = orb;
 
-        GameObject orbOnCursor = Instantiate(orbOnCursorPrefab, transform.position, Quaternion.identity);
-        GameManager.instance.orbOnCursor = orbOnCursor;
-        GameManager.instance.orbOnCursor.GetComponent<SpriteRenderer>().color = orb.spriteRenderer.color;
-
-        orb.ChangeAlpha(0.5f);
+        GameManager.instance.PickUpOrb(orb);
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -97,26 +89,23 @@ public class Cell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoin
         {
             return;
         }
-        GameManager.instance.ResetCellColliders();
 
-        if (GameManager.instance.startedSpinning)
+        if (!GameManager.instance.orbOnCursor)
         {
-            GameManager.instance.startedSpinning = false;
-            GameManager.instance.ResetGrid();
-            GameManager.instance.PopCombos();
+            return;
         }
 
-        Destroy(GameManager.instance.orbOnCursor);
-
-        selectedOrb.ChangeAlpha(1f);
+        GameManager.instance.PutOrbOnCursorDown();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (GameManager.instance.orbOnCursor)
         {
+            GameManager.instance.StartTimer();
             orb.transform.position = transform.position;
             GameManager.instance.startedSpinning = true;
+            // Move the orb from previous cell to this cell
             MoveOrbFrom(currentCellMouseIsOn);
             currentCellMouseIsOn = this;
         }

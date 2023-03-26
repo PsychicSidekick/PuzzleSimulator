@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
+using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,11 +12,22 @@ public class GameManager : MonoBehaviour
     public Vector2Int gridSize;
     public GameObject orbPrefab;
     public GameObject cellPrefab;
+    public GameObject orbOnCursorPrefab;
 
     public bool startedSpinning = false;
     public GameObject orbOnCursor;
 
     public GameObject wall;
+
+    public bool timerStarted = false;
+    public float allowedTime = 10;
+    public float remainingTime;
+    public int comboCount;
+
+    public Slider timerSlider;
+    public TMP_Text comboCountTxt;
+    public TMP_InputField allowedTimeInput;
+
 
     private void Awake()
     {
@@ -33,6 +45,22 @@ public class GameManager : MonoBehaviour
         {
             orbOnCursor.transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition) + new Vector3(0, 0, 10);
         }
+
+        if (timerStarted)
+        {
+            remainingTime -= Time.deltaTime;
+
+            if (remainingTime <= 0)
+            {
+                PutOrbOnCursorDown();
+                timerStarted = false;
+                remainingTime = allowedTime;
+
+            }
+        }
+
+        comboCountTxt.text = comboCount.ToString();
+        timerSlider.value = remainingTime / allowedTime;
     }
 
     public void InitializeGrid()
@@ -139,6 +167,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Randomize orb types in grid but ensures no combo exists
     public void RandomizeGridNoCombo()
     {
         do
@@ -148,6 +177,7 @@ public class GameManager : MonoBehaviour
         while (FindAllCombosInGrid().Count > 0);
     }
 
+    // Reset properties of every orbs on the grid
     public void ResetGrid()
     {
         for (int x = 0; x < gridSize.x; x++)
@@ -193,6 +223,7 @@ public class GameManager : MonoBehaviour
             // Destroy all orbs that are a part of a combo
             foreach (List<Orb> combo in combos)
             {
+                comboCount++;
                 PopCombo(combo);
                 // Separates combo pops
                 yield return new WaitForSeconds(0.3f);
@@ -253,5 +284,51 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void StartTimer()
+    {
+        if (timerStarted)
+        {
+            return;
+        }
+        timerStarted = true;
+        comboCount = 0;
+        remainingTime = allowedTime;
+    }
+
+    public void PickUpOrb(Orb orb)
+    {
+        ExpandEdgeCellColliders();
+
+        ResetGrid();
+
+        GameObject o = Instantiate(orbOnCursorPrefab, transform.position, Quaternion.identity);
+        orbOnCursor = o;
+        orbOnCursor.GetComponent<SpriteRenderer>().color = orb.spriteRenderer.color;
+
+        orb.ChangeAlpha(0.5f);
+    }
+
+    public void PutOrbOnCursorDown()
+    {
+        timerStarted = false;
+        ResetCellColliders();
+
+        if (startedSpinning)
+        {
+            startedSpinning = false;
+            ResetGrid();
+            PopCombos();
+        }
+
+        Destroy(orbOnCursor);
+
+        Cell.selectedOrb.ChangeAlpha(1f);
+    }
+
+    public void UpdateAllowedTime()
+    {
+        allowedTime = int.Parse(allowedTimeInput.text);
     }
 }

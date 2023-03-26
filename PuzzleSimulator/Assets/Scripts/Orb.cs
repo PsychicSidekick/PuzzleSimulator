@@ -54,13 +54,7 @@ public class Orb : MonoBehaviour
     {
         UpdateColour();
     }
-
-    public void ChangeAlpha(float alpha)
-    {
-        Color c = spriteRenderer.color;
-        c.a = alpha;
-        spriteRenderer.color = c;
-    }
+    
     public void Update()
     {
         if (dropping)
@@ -80,6 +74,13 @@ public class Orb : MonoBehaviour
         }
 
         transform.rotation = Quaternion.identity;
+    }
+
+    public void ChangeAlpha(float alpha)
+    {
+        Color c = spriteRenderer.color;
+        c.a = alpha;
+        spriteRenderer.color = c;
     }
 
     // Drops orb to the bottom, stacking on orbs below
