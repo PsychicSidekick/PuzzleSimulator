@@ -233,7 +233,10 @@ public class GameManager : MonoBehaviour
             DropRandomNewOrbs();
 
             // Waits until all orbs are dropped in place
-            yield return new WaitForSeconds(0.4f);
+            if (combos.Count > 0)
+            {
+                yield return new WaitForSeconds(0.4f);
+            }
 
             // Resets grid for next combo find
             ResetGrid();
