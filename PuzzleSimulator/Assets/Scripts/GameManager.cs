@@ -65,6 +65,7 @@ public class GameManager : MonoBehaviour
 
     public void InitializeGrid()
     {
+        grid = new List<List<Cell>>();
         Vector3 firstOrbPos = new Vector3(0.5f - gridSize.x / 2f, 0.5f - gridSize.y / 2f, 0);
 
         for (int x = 0; x < gridSize.x; x++)
